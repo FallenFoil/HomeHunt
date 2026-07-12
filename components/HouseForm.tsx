@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { Upload } from "lucide-react";
 import { useT } from "@/components/LanguageContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -57,7 +58,9 @@ export function HouseForm({ open, initial, onClose, onSubmit }: Props) {
   const t = useT();
   const [form, setForm] = useState<HouseInput>(EMPTY);
   const [submitting, setSubmitting] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -101,10 +104,53 @@ export function HouseForm({ open, initial, onClose, onSubmit }: Props) {
     }
   }
 
+  const uploadFile = async (file: File) => {
+    setUploading(true);
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const data = await res.json();
+      set("photoUrl", data.url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      await uploadFile(file);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const file = items[i].getAsFile();
+        if (file) {
+          e.preventDefault();
+          await uploadFile(file);
+          break;
+        }
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <form onSubmit={handleSubmit} className="flex max-h-[90vh] flex-col">
+        <form onSubmit={handleSubmit} onPaste={handlePaste} className="flex max-h-[90vh] flex-col">
           <DialogHeader className="border-b border-border px-6 py-4">
             <DialogTitle>{initial ? t.editHouse : t.addHouse}</DialogTitle>
           </DialogHeader>
@@ -236,13 +282,33 @@ export function HouseForm({ open, initial, onClose, onSubmit }: Props) {
             </Field>
 
             <Field label={t.fieldPhotoUrl} htmlFor="photoUrl" className="sm:col-span-2">
-              <Input
-                id="photoUrl"
-                type="url"
-                value={form.photoUrl}
-                onChange={(e) => set("photoUrl", e.target.value)}
-                placeholder={t.placeholderPhotoUrl}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="photoUrl"
+                  type="url"
+                  value={form.photoUrl}
+                  onChange={(e) => set("photoUrl", e.target.value)}
+                  placeholder={t.placeholderPhotoUrl}
+                  className="flex-1"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleFileUpload}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-shrink-0"
+                >
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploading ? t.uploadingFile : t.uploadFile}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">{t.photoUrlHint}</p>
             </Field>
 

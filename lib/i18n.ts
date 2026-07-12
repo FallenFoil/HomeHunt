@@ -46,6 +46,8 @@ type Dict = {
   photoUrlHint: string;
   fieldRejectionReason: string;
   fieldNotes: string;
+  uploadFile: string;
+  uploadingFile: string;
 
   placeholderAddress: string;
   placeholderCity: string;
@@ -120,6 +122,8 @@ const en: Dict = {
   photoUrlHint: "Leave empty to auto-generate a screenshot from the listing URL.",
   fieldRejectionReason: "Why was it rejected?",
   fieldNotes: "Notes",
+  uploadFile: "Upload File",
+  uploadingFile: "Uploading...",
 
   placeholderAddress: "Street, number",
   placeholderCity: "e.g. Lisboa",
@@ -208,6 +212,8 @@ const pt: Dict = {
     "Deixe vazio para gerar automaticamente uma captura do URL do anúncio.",
   fieldRejectionReason: "Porque foi rejeitado?",
   fieldNotes: "Notas",
+  uploadFile: "Enviar Ficheiro",
+  uploadingFile: "A enviar...",
 
   placeholderAddress: "Rua, número",
   placeholderCity: "ex. Lisboa",

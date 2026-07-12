@@ -66,11 +66,11 @@ Required fields on create: `type` (`Apartment` | `House`), `city`, `parish`, `st
 
 ## Docker
 
-A multi-stage `Dockerfile` is included. It builds the standalone Next.js output and runs as a non-root user on port 3000. The image bundles `database/database.json` at build time — mount a volume over `/app/database` to persist data across container restarts.
+A multi-stage `Dockerfile` is included. It builds the standalone Next.js output and runs as a non-root user on port 3000. The image bundles `database/database.json` at build time — mount a volume over `/app/database` to persist data, and `/app/public/uploads` to persist uploaded images across container restarts.
 
 ```bash
 docker build -t homehunt .
-docker run -p 3000:3000 -v $(pwd)/database:/app/database homehunt
+docker run -p 3000:3000 -v $(pwd)/database:/app/database -v $(pwd)/public/uploads:/app/public/uploads homehunt
 ```
 
 ## Project layout
